@@ -76,9 +76,9 @@ export default function Home() {
           Twitter Likes Explorer
         </h1>
         <p className="max-w-[400px]">
-          This is a personal tiny tool to be able to browse the tweets I've
+          This is a personal tiny tool to be able to browse the tweets I&apos;ve
           personally liked. The API key is subjected to a 75 query / 15min
-          quota, which is quickly running out. If you've liked more than
+          quota, which is quickly running out. If you&apos;ve liked more than
           (75*100=)7,500 tweets, the request will fail 🤷‍♂️.
           <br />
           Feel free to fork the project to use it on your own.
