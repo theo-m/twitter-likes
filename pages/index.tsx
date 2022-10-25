@@ -68,10 +68,17 @@ export default function Home() {
         <title>Twitter likes explorer</title>
       </Head>
 
-      <main className="h-screen w-screen flex flex-col items-center gap-8">
+      <main className="h-screen w-screen flex flex-col items-center gap-8 px-4">
         <h1 className="mt-8 text-4xl font-black text-black">
           Twitter Likes Explorer
         </h1>
+        <p className="max-w-[400px]">
+          This is a personal tiny tool to be able to browse the tweets I've
+          personally liked. The API key is subjected to a 75 query / 15min
+          quota, which is quickly running out.
+          <br />
+          Feel free to fork the project to use it on your own.
+        </p>
         <div className="flex items-center gap-2">
           <label className="font-bold text-black" htmlFor="handle">
             Handle
@@ -155,7 +162,7 @@ export default function Home() {
             </button>
             <span>
               {1 + Math.floor(page / pageSize)} /{" "}
-              {1 + Math.floor(results.length / pageSize)}
+              {Math.ceil(results.length / pageSize)}
             </span>
             <button
               className={classNames(
@@ -173,7 +180,7 @@ export default function Home() {
 
         <div className="flex relative flex-col gap-4 max-w-[600px]">
           {results?.slice(page, page + pageSize).map(({ item: it, score }) => (
-            <div key={it.id} className="flex  p-4 w-[600px]  flex-col gap-2">
+            <div key={it.id} className="flex p-4 sm:w-[600px] flex-col gap-2">
               <TwitterTweetEmbed tweetId={it.id} placeholder={it.text} />
               <span className="text-sm text-gray-200 font-bold">
                 Score: {score}
