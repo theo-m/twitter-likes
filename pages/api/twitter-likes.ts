@@ -63,19 +63,17 @@ export default async function handler(
       });
 
     let p = 0;
-    while (p < 5) {
+    while (p < 5 && !result.done) {
       console.log("Fetching additional pages:", p, result.meta.next_token);
       result = await result.fetchNext();
       p += 1;
     }
 
-    res
-      .status(200)
-      .json({
-        next: result.meta.next_token,
-        previous: result.meta.previous_token,
-        tweets: result.tweets,
-      });
+    res.status(200).json({
+      next: result.meta.next_token,
+      previous: result.meta.previous_token,
+      tweets: result.tweets,
+    });
   } catch (e) {
     console.error("Could not fetch user id", e);
     res.status(500).json(e);
