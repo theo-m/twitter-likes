@@ -53,6 +53,7 @@ export default async function handler(
     : undefined;
 
   try {
+    console.log("Fetching page", paginationToken);
     let result: TweetV2UserLikedTweetsPaginator =
       await twitterClient.v2.userLikedTweets(uid, {
         max_results: 100,
@@ -70,7 +71,11 @@ export default async function handler(
 
     res
       .status(200)
-      .json({ next: result.meta.next_token, tweets: result.tweets });
+      .json({
+        next: result.meta.next_token,
+        previous: result.meta.previous_token,
+        tweets: result.tweets,
+      });
   } catch (e) {
     console.error("Could not fetch user id", e);
     res.status(500).json(e);

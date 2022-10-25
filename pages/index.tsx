@@ -1,5 +1,5 @@
 import Head from "next/head";
-import { useInfiniteQuery } from "@tanstack/react-query";
+import { DehydratedState, useInfiniteQuery } from "@tanstack/react-query";
 import * as React from "react";
 import { ComponentType, useState } from "react";
 import { type TweetV2 } from "twitter-api-v2";
@@ -24,7 +24,15 @@ const HeroIcon = ({
   return <Icon className={className} aria-hidden={true} />;
 };
 
-const fuse = new Fuse<TweetV2>([], {
+const cachedTweets =
+  typeof window !== "undefined"
+    ? JSON.parse(
+        window.localStorage.getItem("REACT_QUERY_OFFLINE_CACHE") ?? "{}"
+      )?.clientState?.queries[0]?.state.data.pages.flatMap(
+        (it: any) => it.tweets
+      ) ?? []
+    : [];
+const fuse = new Fuse<TweetV2>(cachedTweets, {
   keys: ["text"],
   isCaseSensitive: false,
   includeScore: true,
@@ -42,11 +50,11 @@ export default function Home() {
     "handle",
     undefined
   );
-  const [validHandle, setvalidHandle] = useState(false);
+  const [validHandle, setvalidHandle] = useState(!!handle);
   const [search, setSearch] = useState("");
   const [preview, setPreview] = useState(false);
   const [sort, setSort] = useState<"date" | "score">("score");
-  const [results, setResults] = useState<Fuse.FuseResult<TweetV2>[]>([]);
+  const [results, setResults] = useState(() => fuse.search(""));
   const [page, setPage] = useState(0);
   const likesQuery = useInfiniteQuery(["likes", handle], {
     enabled: !!handle && validHandle,
@@ -56,9 +64,14 @@ export default function Home() {
     retryOnMount: false,
     retry: false,
     keepPreviousData: true,
-    queryFn: ({ queryKey: [, values] }) =>
-      fetch(`/api/twitter-likes?handle=${encodeURIComponent(values ?? "")}`)
-        .then<{ next?: string; tweets: TweetV2[] }>((r) => {
+    queryFn: ({ queryKey: [, values], pageParam }) =>
+      fetch(
+        `/api/twitter-likes?${new URLSearchParams({
+          handle: handle ?? "",
+          ...(pageParam ? { token: pageParam } : {}),
+        })}`
+      )
+        .then<{ next?: string; previous?: string; tweets: TweetV2[] }>((r) => {
           if (r.status > 399)
             return r.text().then((t) => {
               console.log(t);
@@ -72,7 +85,8 @@ export default function Home() {
           setResults(fuse.search(""));
           return r;
         }),
-    getNextPageParam: (qkey, opts) => qkey.next,
+    getNextPageParam: (data) => data.next,
+    getPreviousPageParam: (data) => data.previous,
   });
 
   return (
