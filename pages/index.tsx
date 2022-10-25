@@ -9,6 +9,7 @@ import Fuse from "fuse.js";
 import classNames from "classnames";
 import { TwitterTweetEmbed } from "react-twitter-embed";
 import useLocalStorage from "../lib/useLocalStorage";
+import { Disclosure } from "@headlessui/react";
 
 const HeroIcon = ({
   name,
@@ -110,26 +111,42 @@ export default function Home() {
         <h1 className="mt-8 text-4xl font-black text-black">
           Twitter Likes Explorer
         </h1>
-        <p className="prose max-w-[480px]">
-          This is a personal tiny tool to be able to browse the tweets I&apos;ve
-          personally liked.
-          <br />
-          The API key is subjected to a 75 query / 15min quota, which is quickly
-          running out.
-          <br />
-          Almost everything happens in the browser: queries are cached and
-          search happens thanks to fuse.js.
-          <br />
-          Feel free to{" "}
-          <a
-            href="https://github.com/theo-m/twitter-likes"
-            target="_blank"
-            rel="noreferrer"
-          >
-            fork the project
-          </a>{" "}
-          to use it on your own.
-        </p>
+        <Disclosure>
+          {({ open }) => (
+            <>
+              <Disclosure.Button className="flex w-full sm:w-[200px] justify-between rounded-lg bg-gray-100 px-4 py-4 text-left text-sm font-medium text-gray-900 hover:bg-gray-200 focus:outline-none focus-visible:ring focus-visible:ring-gray-500 focus-visible:ring-opacity-75">
+                <span>About</span>
+                <HeroIcon
+                  name="ChevronUpIcon"
+                  className={`${
+                    open ? "rotate-180 transform" : ""
+                  } h-5 w-5 text-gray-500`}
+                />
+              </Disclosure.Button>
+              <Disclosure.Panel className="pb-4 -mt-2 prose border-b">
+                This is a personal tiny tool to be able to browse the tweets
+                I&apos;ve personally liked.
+                <br />
+                The API key is subjected to a 75 query / 15min quota, which is
+                quickly running out.
+                <br />
+                Almost everything happens in the browser: queries are cached and
+                search happens thanks to fuse.js.
+                <br />
+                Feel free to{" "}
+                <a
+                  href="https://github.com/theo-m/twitter-likes"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  fork the project
+                </a>{" "}
+                to use it on your own.
+              </Disclosure.Panel>
+            </>
+          )}
+        </Disclosure>
+
         <div className="flex items-center gap-2">
           <label className="font-bold text-black" htmlFor="handle">
             Handle
