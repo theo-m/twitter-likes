@@ -97,7 +97,7 @@ export default function Home() {
   return (
     <div>
       <Head>
-        <title>Twitter likes explorer</title>
+        <title>Twitter Likes Explorer</title>
         <meta property="og:url" content="https://www.002fa7.net" />
         <meta property="og:title" content="Twitter Likes Explorer" />
         <meta
