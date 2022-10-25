@@ -43,7 +43,7 @@ export default function Home() {
     undefined
   );
   const [validHandle, setvalidHandle] = useState(false);
-  const [search, setSearch] = useState<string>();
+  const [search, setSearch] = useState("");
   const [preview, setPreview] = useState(false);
   const [sort, setSort] = useState<"date" | "score">("score");
   const [results, setResults] = useState<Fuse.FuseResult<TweetV2>[]>([]);
@@ -124,7 +124,7 @@ export default function Home() {
               <HeroIcon name="ExclamationTriangleIcon" />
               <span>Error querying</span>
             </h2>
-            <p className="whitespace-prewrap font-mono rounded text-xs p-2 bg-white text-gray-500">
+            <p className="whitespace-pre-wrap overflow-hidden font-mono rounded text-xs p-2 bg-white text-gray-500">
               {JSON.stringify(
                 // @ts-ignore
                 JSON.parse(likesQuery.error?.message ?? ""),
