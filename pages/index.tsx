@@ -29,8 +29,9 @@ const fuse = new Fuse<TweetV2>([], {
   includeScore: true,
   shouldSort: true,
   // search params
-  location: 0,
-  distance: 20,
+  ignoreLocation: true,
+  // location: 0,
+  // distance: 20,
   threshold: 0.3,
 });
 const pageSize = 30;
