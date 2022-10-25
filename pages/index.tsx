@@ -114,7 +114,7 @@ export default function Home() {
         <Disclosure>
           {({ open }) => (
             <>
-              <Disclosure.Button className="flex w-full sm:w-[200px] justify-between rounded-lg bg-gray-100 px-4 py-4 text-left text-sm font-medium text-gray-900 hover:bg-gray-200 focus:outline-none focus-visible:ring focus-visible:ring-gray-500 focus-visible:ring-opacity-75">
+              <Disclosure.Button className="flex w-full sm:w-[480px] justify-between rounded-lg bg-gray-100 px-4 py-4 text-left text-sm font-medium text-gray-900 hover:bg-gray-200 focus:outline-none focus-visible:ring focus-visible:ring-gray-500 focus-visible:ring-opacity-75">
                 <span>About</span>
                 <HeroIcon
                   name="ChevronUpIcon"
@@ -123,7 +123,7 @@ export default function Home() {
                   } h-5 w-5 text-gray-500`}
                 />
               </Disclosure.Button>
-              <Disclosure.Panel className="pb-4 -mt-2 prose border-b">
+              <Disclosure.Panel className="pb-4 -mt-2 prose border-b sm:w-[480px]">
                 This is a personal tiny tool to be able to browse the tweets
                 I&apos;ve personally liked.
                 <br />
@@ -347,7 +347,7 @@ export default function Home() {
 
 function TweetPreview({ t, score }: { t: TweetV2; score?: number }) {
   return (
-    <div className="flex p-4 sm:w-[600px] flex-col gap-4 bg-white rounded-xl border">
+    <div className="flex p-4 sm:w-[500px] h-fit flex-col gap-4 bg-white rounded-xl border">
       <p className="whitespace-pre-wrap">{t.text}</p>
       <div className="flex justify-between items-center text-sm w-full gap-2">
         {t.created_at && (
