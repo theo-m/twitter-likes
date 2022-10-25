@@ -26,9 +26,12 @@ const HeroIcon = ({
 const fuse = new Fuse<TweetV2>([], {
   keys: ["text"],
   isCaseSensitive: false,
-  distance: 20,
   includeScore: true,
   shouldSort: true,
+  // search params
+  location: 0,
+  distance: 20,
+  threshold: 0.3,
 });
 const pageSize = 30;
 
@@ -75,7 +78,8 @@ export default function Home() {
         <p className="max-w-[400px]">
           This is a personal tiny tool to be able to browse the tweets I've
           personally liked. The API key is subjected to a 75 query / 15min
-          quota, which is quickly running out.
+          quota, which is quickly running out. If you've liked more than
+          (75*100=)7,500 tweets, the request will fail 🤷‍♂️.
           <br />
           Feel free to fork the project to use it on your own.
         </p>

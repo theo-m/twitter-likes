@@ -26,8 +26,9 @@ export default async function handler(
   }
 
   const handle = Array.isArray(handleQp) ? handleQp[0] : handleQp;
+  const cacheKey = `${handle}.json`;
   const fsCached = await fs.promises
-    .readFile(handle)
+    .readFile(cacheKey)
     .then<TweetV2[]>((r) => JSON.parse(r.toString()))
     .catch(() => null);
   if (fsCached) {
@@ -48,7 +49,10 @@ export default async function handler(
   }
 
   let result: TweetV2UserLikedTweetsPaginator =
-    await twitterClient.v2.userLikedTweets(uid, { max_results: 100 });
+    await twitterClient.v2.userLikedTweets(uid, {
+      max_results: 100,
+      "tweet.fields": ["created_at"],
+    });
 
   while (!result.done) {
     console.log("Loading new page, # tweets loaded:", result.tweets.length);
@@ -61,7 +65,10 @@ export default async function handler(
     }
   }
 
-  fs.promises.writeFile(handle, JSON.stringify(result.tweets));
+  const tweets = result.tweets.sort(({ created_at: a }, { created_at: b }) => {
+    return (a ?? "") < (b ?? "") ? 1 : -1;
+  });
+  fs.promises.writeFile(cacheKey, JSON.stringify(tweets));
 
-  res.status(200).json(result.tweets);
+  res.status(200).json(tweets);
 }
