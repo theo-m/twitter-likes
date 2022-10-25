@@ -117,7 +117,18 @@ export default function Home() {
           The API key is subjected to a 75 query / 15min quota, which is quickly
           running out.
           <br />
-          Feel free to fork the project to use it on your own.
+          Almost everything happens in the browser: queries are cached and
+          search happens thanks to fuse.js.
+          <br />
+          Feel free to{" "}
+          <a
+            href="https://github.com/theo-m/twitter-likes"
+            target="_blank"
+            rel="noreferrer"
+          >
+            fork the project
+          </a>{" "}
+          to use it on your own.
         </p>
         <div className="flex items-center gap-2">
           <label className="font-bold text-black" htmlFor="handle">
@@ -221,11 +232,15 @@ export default function Home() {
               <div className="flex items-center gap-4">
                 <button
                   className="rounded-full py-1 px-2 gap-2 flex items-center justify-center text-white bg-gray-500 hover:bg-opacity-80 focus:ring"
-                  onClick={() => setShowFancyTwitterEmbed(!showFancyTwitterEmbed)}
+                  onClick={() =>
+                    setShowFancyTwitterEmbed(!showFancyTwitterEmbed)
+                  }
                 >
-                  <HeroIcon name={showFancyTwitterEmbed ? "EyeSlashIcon" : "EyeIcon"} />
+                  <HeroIcon
+                    name={showFancyTwitterEmbed ? "EyeIcon" : "EyeSlashIcon"}
+                  />
                   <span className="text-xs">
-                    {showFancyTwitterEmbed ? "simple" : "embedded tweets"}
+                    {showFancyTwitterEmbed ? "embedded tweets" : "simple"}
                   </span>
                 </button>
                 <button
@@ -235,24 +250,26 @@ export default function Home() {
                     setResults((r) =>
                       r.sort((a, b) =>
                         sortType === "date"
-                          ? (a.item.created_at ?? "") <
-                            (b.item.created_at ?? "")
-                            ? 1
-                            : -1
-                          : (a.score ?? 0) < (b.score ?? 0)
-                          ? 1
-                          : -1
+                          ? a.item.created_at && b.item.created_at
+                            ? new Date(b.item.created_at).getTime() -
+                              new Date(a.item.created_at).getTime()
+                            : 0
+                          : (b.score ?? 0) - (a.score ?? 0)
                       )
                     );
                   }}
                 >
                   <HeroIcon
                     name={
-                      sortType === "date" ? "CalendarIcon" : "MagnifyingGlassIcon"
+                      sortType === "date"
+                        ? "CalendarIcon"
+                        : "MagnifyingGlassIcon"
                     }
                   />
                   <span className="text-xs">
-                    {sortType === "date" ? "sort by score" : "sort by date"}
+                    {sortType === "date"
+                      ? "sorting by date"
+                      : "sorting by score"}
                   </span>
                 </button>
               </div>
@@ -297,10 +314,10 @@ export default function Home() {
                     <TwitterTweetEmbed
                       key={it.id}
                       tweetId={it.id}
-                      placeholder={<TweetPreview t={it} />}
+                      placeholder={<TweetPreview t={it} score={score} />}
                     />
                   ) : (
-                    <TweetPreview key={it.id} t={it} />
+                    <TweetPreview key={it.id} t={it} score={score} />
                   )
                 )}
             </div>
@@ -311,13 +328,13 @@ export default function Home() {
   );
 }
 
-function TweetPreview({ t }: { t: TweetV2 }) {
+function TweetPreview({ t, score }: { t: TweetV2; score?: number }) {
   return (
     <div className="flex p-4 sm:w-[600px] flex-col gap-4 bg-white rounded-xl border">
       <p className="whitespace-pre-wrap">{t.text}</p>
       <div className="flex justify-between items-center text-sm w-full gap-2">
         {t.created_at && (
-          <span className="text-gray-200">
+          <span className="text-gray-300">
             {new Date(t.created_at).toLocaleString()}
           </span>
         )}
@@ -331,6 +348,12 @@ function TweetPreview({ t }: { t: TweetV2 }) {
           Visit on twitter
         </a>
       </div>
+      {score && (
+        <p className="text-sm text-gray-300">
+          Search score (lower is better):{" "}
+          <span className="font-bold">{score.toFixed(2)}</span>
+        </p>
+      )}
     </div>
   );
 }
