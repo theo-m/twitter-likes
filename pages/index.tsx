@@ -75,6 +75,13 @@ export default function Home() {
     <div>
       <Head>
         <title>Twitter likes explorer</title>
+        <meta property="og:url" content="https://www.002fa7.net" />
+        <meta property="og:title" content="Twitter Likes Explorer" />
+        <meta
+          property="og:description"
+          content="A personal tool to search my liked tweets."
+        />
+        <meta property="og:image" content="https://www.002fa7.net/og.png" />
       </Head>
 
       <main className="h-screen w-screen flex flex-col items-center gap-8 px-4">
