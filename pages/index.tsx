@@ -24,6 +24,8 @@ const HeroIcon = ({
   return <Icon className={className} aria-hidden={true} />;
 };
 
+// XXX: wish there was a hook on react-query's rehydration, but in the meantime this
+// monstrosity will do.
 const cachedTweets =
   typeof window !== "undefined"
     ? JSON.parse(
@@ -32,6 +34,7 @@ const cachedTweets =
         (it: any) => it.tweets
       ) ?? []
     : [];
+
 const fuse = new Fuse<TweetV2>(cachedTweets, {
   keys: ["text"],
   isCaseSensitive: false,
@@ -39,8 +42,6 @@ const fuse = new Fuse<TweetV2>(cachedTweets, {
   shouldSort: true,
   // search params
   ignoreLocation: true,
-  // location: 0,
-  // distance: 20,
   threshold: 0.3,
 });
 const pageSize = 10;
@@ -51,11 +52,14 @@ export default function Home() {
     undefined
   );
   const [validHandle, setvalidHandle] = useState(!!handle);
-  const [search, setSearch] = useState("");
-  const [preview, setPreview] = useState(false);
-  const [sort, setSort] = useState<"date" | "score">("score");
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const [showFancyTwitterEmbed, setShowFancyTwitterEmbed] = useState(false);
+  const [sortType, setSortType] = useState<"date" | "score">("score");
+
   const [results, setResults] = useState(() => fuse.search(""));
   const [page, setPage] = useState(0);
+
   const likesQuery = useInfiniteQuery(["likes", handle], {
     enabled: !!handle && validHandle,
     refetchOnMount: false,
@@ -182,7 +186,7 @@ export default function Home() {
                 name="search"
                 placeholder="border"
                 onChange={(e) =>
-                  setSearch(() => {
+                  setSearchQuery(() => {
                     const s = e.target.value;
                     if (s) setResults(fuse.search(s));
                     else {
@@ -203,34 +207,34 @@ export default function Home() {
               />
             </div>
 
-            {search && (
+            {searchQuery && (
               <div>
                 Found{" "}
                 <span className="text-black font-bold">
                   {results.length.toLocaleString()}
                 </span>{" "}
                 tweets liked matching &ldquo;
-                <span className="text-blue-400">{search}</span>&rdquo;
+                <span className="text-blue-400">{searchQuery}</span>&rdquo;
               </div>
             )}
             {results?.length > 0 && (
               <div className="flex items-center gap-4">
                 <button
                   className="rounded-full py-1 px-2 gap-2 flex items-center justify-center text-white bg-gray-500 hover:bg-opacity-80 focus:ring"
-                  onClick={() => setPreview(!preview)}
+                  onClick={() => setShowFancyTwitterEmbed(!showFancyTwitterEmbed)}
                 >
-                  <HeroIcon name={preview ? "EyeSlashIcon" : "EyeIcon"} />
+                  <HeroIcon name={showFancyTwitterEmbed ? "EyeSlashIcon" : "EyeIcon"} />
                   <span className="text-xs">
-                    {preview ? "simple" : "embedded tweets"}
+                    {showFancyTwitterEmbed ? "simple" : "embedded tweets"}
                   </span>
                 </button>
                 <button
                   className="rounded-full px-2  py-1 gap-2 flex items-center justify-center text-white bg-gray-500 hover:bg-opacity-80 focus:ring"
                   onClick={() => {
-                    setSort(sort === "date" ? "score" : "date");
+                    setSortType(sortType === "date" ? "score" : "date");
                     setResults((r) =>
                       r.sort((a, b) =>
-                        sort === "date"
+                        sortType === "date"
                           ? (a.item.created_at ?? "") <
                             (b.item.created_at ?? "")
                             ? 1
@@ -244,11 +248,11 @@ export default function Home() {
                 >
                   <HeroIcon
                     name={
-                      sort === "date" ? "CalendarIcon" : "MagnifyingGlassIcon"
+                      sortType === "date" ? "CalendarIcon" : "MagnifyingGlassIcon"
                     }
                   />
                   <span className="text-xs">
-                    {sort === "date" ? "sort by score" : "sort by date"}
+                    {sortType === "date" ? "sort by score" : "sort by date"}
                   </span>
                 </button>
               </div>
@@ -289,7 +293,7 @@ export default function Home() {
               {results
                 ?.slice(page, page + pageSize)
                 .map(({ item: it, score }) =>
-                  preview ? (
+                  showFancyTwitterEmbed ? (
                     <TwitterTweetEmbed
                       key={it.id}
                       tweetId={it.id}
