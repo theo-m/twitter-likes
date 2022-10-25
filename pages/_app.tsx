@@ -1,15 +1,29 @@
 import type { AppProps } from "next/app";
-import "styles/globals.css";
 import { QueryClient } from "@tanstack/query-core";
-import { QueryClientProvider } from "@tanstack/react-query";
+import { createSyncStoragePersister } from "@tanstack/query-sync-storage-persister";
+import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
 
-const queryClient = new QueryClient();
+import "styles/globals.css";
+
+const queryClient = new QueryClient({
+  defaultOptions: { queries: { cacheTime: Infinity } },
+});
+
+const persister =
+  typeof window !== "undefined"
+    ? createSyncStoragePersister({
+        storage: window.localStorage,
+      })
+    : undefined;
 
 function MyApp({ Component, pageProps }: AppProps) {
   return (
-    <QueryClientProvider client={queryClient}>
+    <PersistQueryClientProvider
+      client={queryClient}
+      persistOptions={persister ? { persister } : { persister: null }}
+    >
       <Component {...pageProps} />
-    </QueryClientProvider>
+    </PersistQueryClientProvider>
   );
 }
 

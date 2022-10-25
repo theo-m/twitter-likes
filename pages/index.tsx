@@ -8,6 +8,7 @@ import dynamic from "next/dynamic";
 import Fuse from "fuse.js";
 import classNames from "classnames";
 import { TwitterTweetEmbed } from "react-twitter-embed";
+import useLocalStorage from "../lib/useLocalStorage";
 
 const HeroIcon = ({
   name,
@@ -34,17 +35,21 @@ const fuse = new Fuse<TweetV2>([], {
   // distance: 20,
   threshold: 0.3,
 });
-const pageSize = 30;
+const pageSize = 10;
 
 export default function Home() {
-  const [handle, setHandle] = useState<string>();
+  const [handle, setHandle] = useLocalStorage<string | undefined>(
+    "handle",
+    undefined
+  );
+  const [validHandle, setvalidHandle] = useState(false);
   const [search, setSearch] = useState<string>();
   const [preview, setPreview] = useState(false);
   const [sort, setSort] = useState<"date" | "score">("score");
   const [results, setResults] = useState<Fuse.FuseResult<TweetV2>[]>([]);
   const [page, setPage] = useState(0);
   const likesQuery = useInfiniteQuery(["likes", handle], {
-    enabled: !!handle,
+    enabled: !!handle && validHandle,
     refetchOnMount: false,
     refetchOnReconnect: false,
     refetchOnWindowFocus: false,
@@ -62,10 +67,9 @@ export default function Home() {
           return r.json();
         })
         .then((r) => {
+          console.log("Adding tweets to fuse: new", r.tweets.length);
           r.tweets.forEach((t) => fuse.add(t));
-          setResults(
-            r.tweets.slice(0, 30).map((it) => ({ item: it, refIndex: 0 }))
-          );
+          setResults(fuse.search(""));
           return r;
         }),
     getNextPageParam: (qkey, opts) => qkey.next,
@@ -88,11 +92,12 @@ export default function Home() {
         <h1 className="mt-8 text-4xl font-black text-black">
           Twitter Likes Explorer
         </h1>
-        <p className="max-w-[480px]">
+        <p className="prose max-w-[480px]">
           This is a personal tiny tool to be able to browse the tweets I&apos;ve
-          personally liked. The API key is subjected to a 75 query / 15min
-          quota, which is quickly running out. If you&apos;ve liked more than
-          (75*100=)7,500 tweets, the request will fail 🤷‍♂️.
+          personally liked.
+          <br />
+          The API key is subjected to a 75 query / 15min quota, which is quickly
+          running out.
           <br />
           Feel free to fork the project to use it on your own.
         </p>
@@ -104,26 +109,15 @@ export default function Home() {
             type="text"
             name="handle"
             placeholder="tintin"
-            onKeyDown={(e) =>
-              e.key === "Enter" && setHandle(e.currentTarget.value)
-            }
+            value={handle ?? ""}
+            onChange={(e) => setHandle(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && setvalidHandle(true)}
             className={classNames(
               "py-2 px-4 rounded-xl border placeholder:text-gray-200",
               handle && "bg-gray-100"
             )}
           />
         </div>
-        {likesQuery.data &&
-          likesQuery.data.pages.length > 0 &&
-          !likesQuery.isFetching &&
-          likesQuery.hasNextPage && (
-            <button
-              className="px-4 py-1 rounded-full bg-black text-white shadow hover:shadow-lg"
-              onClick={() => likesQuery.fetchNextPage()}
-            >
-              Fetch next
-            </button>
-          )}
         {likesQuery.isError && (
           <div className="p-4 rounded-xl bg-red-500 text-white flex flex-col gap-2 w-[400px]">
             <h2 className="text-xl font-bold flex items-center gap-2">
@@ -143,14 +137,27 @@ export default function Home() {
         {likesQuery.isFetching && <div>Loading...</div>}
         {likesQuery.data && (
           <>
-            <div>
-              Found{" "}
-              <span className="text-black font-bold">
-                {likesQuery.data.pages
-                  .flatMap((it) => it.tweets)
-                  .length.toLocaleString()}
-              </span>{" "}
-              tweets liked
+            <div className="flex items-center justify-between gap-4">
+              <p>
+                Found{" "}
+                <span className="text-black font-bold">
+                  {likesQuery.data.pages
+                    .flatMap((it) => it.tweets)
+                    .length.toLocaleString()}
+                </span>{" "}
+                tweets liked
+              </p>
+              {likesQuery.data &&
+                likesQuery.data.pages.length > 0 &&
+                !likesQuery.isFetching &&
+                likesQuery.hasNextPage && (
+                  <button
+                    className="px-4 py-1 rounded-full bg-black text-white shadow hover:shadow-lg"
+                    onClick={() => likesQuery.fetchNextPage()}
+                  >
+                    Fetch next
+                  </button>
+                )}
             </div>
             <div className="flex items-center gap-2">
               <label className="font-bold text-black" htmlFor="search">
@@ -192,15 +199,49 @@ export default function Home() {
                 <span className="text-blue-400">{search}</span>&rdquo;
               </div>
             )}
-
             {results?.length > 0 && (
               <div className="flex items-center gap-4">
                 <button
-                  className="rounded-full p-1 flex items-center justify-center text-white bg-gray-500 hover:bg-opacity-80 focus:ring"
+                  className="rounded-full py-1 px-2 gap-2 flex items-center justify-center text-white bg-gray-500 hover:bg-opacity-80 focus:ring"
                   onClick={() => setPreview(!preview)}
                 >
                   <HeroIcon name={preview ? "EyeSlashIcon" : "EyeIcon"} />
+                  <span className="text-xs">
+                    {preview ? "simple" : "embedded tweets"}
+                  </span>
                 </button>
+                <button
+                  className="rounded-full px-2  py-1 gap-2 flex items-center justify-center text-white bg-gray-500 hover:bg-opacity-80 focus:ring"
+                  onClick={() => {
+                    setSort(sort === "date" ? "score" : "date");
+                    setResults((r) =>
+                      r.sort((a, b) =>
+                        sort === "date"
+                          ? (a.item.created_at ?? "") <
+                            (b.item.created_at ?? "")
+                            ? 1
+                            : -1
+                          : (a.score ?? 0) < (b.score ?? 0)
+                          ? 1
+                          : -1
+                      )
+                    );
+                  }}
+                >
+                  <HeroIcon
+                    name={
+                      sort === "date" ? "CalendarIcon" : "MagnifyingGlassIcon"
+                    }
+                  />
+                  <span className="text-xs">
+                    {sort === "date" ? "sort by score" : "sort by date"}
+                  </span>
+                </button>
+              </div>
+            )}
+
+            {results?.length > 0 && (
+              <div className="flex items-center gap-4">
                 <button
                   className={classNames(
                     "text-white rounded-full px-4 py-1",
@@ -227,30 +268,6 @@ export default function Home() {
                 >
                   <HeroIcon name="ChevronRightIcon" />
                 </button>
-                <button
-                  className="rounded-full p-1 flex items-center justify-center text-white bg-gray-500 hover:bg-opacity-80 focus:ring"
-                  onClick={() => {
-                    setSort(sort === "date" ? "score" : "date");
-                    setResults((r) =>
-                      r.sort((a, b) =>
-                        sort === "date"
-                          ? (a.item.created_at ?? "") <
-                            (b.item.created_at ?? "")
-                            ? 1
-                            : -1
-                          : (a.score ?? 0) < (b.score ?? 0)
-                          ? 1
-                          : -1
-                      )
-                    );
-                  }}
-                >
-                  <HeroIcon
-                    name={
-                      sort === "date" ? "CalendarIcon" : "MagnifyingGlassIcon"
-                    }
-                  />
-                </button>
               </div>
             )}
 
@@ -259,21 +276,13 @@ export default function Home() {
                 ?.slice(page, page + pageSize)
                 .map(({ item: it, score }) =>
                   preview ? (
-                    <TweetPreview t={it} />
-                  ) : (
-                    <div
+                    <TwitterTweetEmbed
                       key={it.id}
-                      className="flex p-4 sm:w-[600px] flex-col gap-2"
-                    >
-                      <TwitterTweetEmbed
-                        tweetId={it.id}
-                        placeholder={<TweetPreview t={it} />}
-                      />
-
-                      <span className="text-sm text-gray-200 font-bold">
-                        Score: {score}
-                      </span>
-                    </div>
+                      tweetId={it.id}
+                      placeholder={<TweetPreview t={it} />}
+                    />
+                  ) : (
+                    <TweetPreview key={it.id} t={it} />
                   )
                 )}
             </div>
