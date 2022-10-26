@@ -77,7 +77,12 @@ export default function Home() {
           ...(pageParam ? { token: pageParam } : {}),
         })}`
       )
-        .then<{ next?: string; previous?: string; tweets: TweetV2[] }>((r) => {
+        .then<{
+          next?: string;
+          previous?: string;
+          tweets: TweetV2[];
+          count: number;
+        }>((r) => {
           if (r.status > 399)
             return r.text().then((t) => {
               console.log(t);
@@ -156,13 +161,15 @@ export default function Home() {
           <>
             <div className="flex items-center justify-between gap-4">
               <p>
-                Found{" "}
+                Loaded{" "}
                 <span className="text-black font-bold">
                   {likesQuery.data.pages
                     .flatMap((it) => it.tweets)
                     .length.toLocaleString()}
                 </span>{" "}
-                tweets liked
+                tweets{" "}
+                {likesQuery.hasNextPage &&
+                  `(of ${likesQuery.data.pages[0]?.count} total)`}
               </p>
               {likesQuery.data &&
                 likesQuery.data.pages.length > 0 &&
