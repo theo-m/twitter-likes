@@ -9,6 +9,7 @@ import {
 
 import "styles/globals.css";
 import { useEffect } from "react";
+import { Analytics } from "@vercel/analytics/react";
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { cacheTime: Infinity } },
@@ -40,10 +41,12 @@ function MyApp({ Component, pageProps }: AppProps) {
       }}
     >
       <Component {...pageProps} />
+      <Analytics />
     </PersistQueryClientProvider>
   ) : (
     <QueryClientProvider client={queryClient}>
       <Component {...pageProps} />
+      <Analytics />
     </QueryClientProvider>
   );
 }
