@@ -73,6 +73,8 @@ export default async function handler(
       next: result.meta.next_token,
       previous: result.meta.previous_token,
       tweets: result.tweets,
+      remaining: result.rateLimit.remaining,
+      until: result.rateLimit.reset,
     });
   } catch (e) {
     console.error("Could not fetch user id", e);

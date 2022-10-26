@@ -48,6 +48,10 @@ const fuse = new Fuse<TweetV2>(cachedTweets, {
 });
 const pageSize = 10;
 
+function toLocalTime(ts: number) {
+  return new Date(ts * 1000);
+}
+
 export default function Home() {
   const [handle, setHandle] = useLocalStorage<string | undefined>(
     "handle",
@@ -81,6 +85,8 @@ export default function Home() {
           next?: string;
           previous?: string;
           tweets: TweetV2[];
+          remaining: number;
+          until: number;
         }>((r) => {
           if (r.status > 399)
             return r.text().then((t) => {
@@ -159,15 +165,26 @@ export default function Home() {
         {likesQuery.data && (
           <>
             <div className="flex items-center justify-between gap-4">
-              <p>
-                Loaded{" "}
-                <span className="text-black font-bold">
-                  {likesQuery.data.pages
-                    .flatMap((it) => it.tweets)
-                    .length.toLocaleString()}
-                </span>{" "}
-                tweets.
-              </p>
+              <div className="flex flex-col gap-2">
+                <p>
+                  Loaded{" "}
+                  <span className="text-black font-bold">
+                    {likesQuery.data.pages
+                      .flatMap((it) => it.tweets)
+                      .length.toLocaleString()}
+                  </span>{" "}
+                  tweets.
+                </p>
+                {likesQuery.data.pages.slice(-1)[0]?.remaining && (
+                  <p>
+                    {likesQuery.data.pages.slice(-1)[0]?.remaining} calls left
+                    on the API key, resets at{" "}
+                    {toLocalTime(
+                      likesQuery.data.pages.slice(-1)[0]?.until
+                    ).toLocaleTimeString()}
+                  </p>
+                )}
+              </div>
               {likesQuery.data &&
                 likesQuery.data.pages.length > 0 &&
                 !likesQuery.isFetching &&
