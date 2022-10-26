@@ -1,5 +1,5 @@
 import Head from "next/head";
-import { DehydratedState, useInfiniteQuery } from "@tanstack/react-query";
+import { useInfiniteQuery } from "@tanstack/react-query";
 import * as React from "react";
 import { ComponentType, useState } from "react";
 import { type TweetV2 } from "twitter-api-v2";
@@ -9,7 +9,8 @@ import Fuse from "fuse.js";
 import classNames from "classnames";
 import { TwitterTweetEmbed } from "react-twitter-embed";
 import useLocalStorage from "../lib/useLocalStorage";
-import { Disclosure } from "@headlessui/react";
+import Link from "next/link";
+import SpinIcon from "../lib/SpinIcon";
 
 const HeroIcon = ({
   name,
@@ -111,58 +112,29 @@ export default function Home() {
         <h1 className="mt-8 text-4xl font-black text-black">
           Twitter Likes Explorer
         </h1>
-        <Disclosure>
-          {({ open }) => (
-            <>
-              <Disclosure.Button className="flex w-full sm:w-[480px] justify-between rounded-lg bg-gray-100 px-4 py-4 text-left text-sm font-medium text-gray-900 hover:bg-gray-200 focus:outline-none focus-visible:ring focus-visible:ring-gray-500 focus-visible:ring-opacity-75">
-                <span>About</span>
-                <HeroIcon
-                  name="ChevronUpIcon"
-                  className={`${
-                    open ? "rotate-180 transform" : ""
-                  } h-5 w-5 text-gray-500`}
-                />
-              </Disclosure.Button>
-              <Disclosure.Panel className="pb-4 -mt-2 prose border-b sm:w-[480px]">
-                This is a personal tiny tool to be able to browse the tweets
-                I&apos;ve personally liked.
-                <br />
-                The API key is subjected to a 75 query / 15min quota, which is
-                quickly running out.
-                <br />
-                Almost everything happens in the browser: queries are cached and
-                search happens thanks to fuse.js.
-                <br />
-                Feel free to{" "}
-                <a
-                  href="https://github.com/theo-m/twitter-likes"
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  fork the project
-                </a>{" "}
-                to use it on your own.
-              </Disclosure.Panel>
-            </>
-          )}
-        </Disclosure>
-
         <div className="flex items-center gap-2">
           <label className="font-bold text-black" htmlFor="handle">
             Handle
           </label>
-          <input
-            type="text"
-            name="handle"
-            placeholder="tintin"
-            value={handle ?? ""}
-            onChange={(e) => setHandle(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && setvalidHandle(true)}
-            className={classNames(
-              "py-2 px-4 rounded-xl border placeholder:text-gray-200",
-              handle && "bg-gray-100"
+          <div className="relative">
+            <input
+              type="text"
+              name="handle"
+              placeholder="tintin"
+              value={handle ?? ""}
+              onChange={(e) => setHandle(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && setvalidHandle(true)}
+              className={classNames(
+                "py-2 px-4 rounded-xl border placeholder:text-gray-200",
+                handle && "bg-gray-100"
+              )}
+            />
+            {likesQuery.isFetching && (
+              <div className="absolute top-1/2 -translate-y-1/2 right-2">
+                <SpinIcon height={24} className="animate-spin" />
+              </div>
             )}
-          />
+          </div>
         </div>
         {likesQuery.isError && (
           <div className="p-4 rounded-xl bg-red-500 text-white flex flex-col gap-2 w-[400px]">
@@ -180,7 +152,6 @@ export default function Home() {
             </p>
           </div>
         )}
-        {likesQuery.isFetching && <div>Loading...</div>}
         {likesQuery.data && (
           <>
             <div className="flex items-center justify-between gap-4">
@@ -340,6 +311,10 @@ export default function Home() {
             </div>
           </>
         )}
+
+        <Link href="/about">
+          <a className="mt-auto pb-8 underline">About</a>
+        </Link>
       </main>
     </div>
   );
