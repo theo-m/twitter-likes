@@ -81,7 +81,6 @@ export default function Home() {
           next?: string;
           previous?: string;
           tweets: TweetV2[];
-          count: number;
         }>((r) => {
           if (r.status > 399)
             return r.text().then((t) => {
@@ -167,9 +166,7 @@ export default function Home() {
                     .flatMap((it) => it.tweets)
                     .length.toLocaleString()}
                 </span>{" "}
-                tweets{" "}
-                {likesQuery.hasNextPage &&
-                  `(of ${likesQuery.data.pages[0]?.count} total)`}
+                tweets.
               </p>
               {likesQuery.data &&
                 likesQuery.data.pages.length > 0 &&
