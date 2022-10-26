@@ -316,9 +316,31 @@ export default function Home() {
           </>
         )}
 
-        <Link href="/about">
-          <a className="mt-auto pb-8 underline">About</a>
-        </Link>
+        <div className="mt-auto pb-8 flex flex-col items-center gap-4">
+          <Link href="/about">
+            <a className="underline">About</a>
+          </Link>
+
+          {likesQuery.data && (
+            <button
+              className="hover:text-gray-400 flex items-center gap-2"
+              onClick={() => {
+                fuse.remove(() => true);
+                fuse.setCollection([]);
+                setSearchQuery("");
+                setvalidHandle(false);
+                setHandle("");
+                setPage(0);
+                setResults([]);
+                likesQuery.remove();
+                window.location.reload();
+              }}
+            >
+              <HeroIcon name="TrashIcon" />
+              <span>Delete local caches</span>
+            </button>
+          )}
+        </div>
       </main>
     </div>
   );
@@ -326,7 +348,7 @@ export default function Home() {
 
 function TweetPreview({ t, score }: { t: TweetV2; score?: number }) {
   return (
-    <div className="flex p-4 sm:w-[500px] h-fit flex-col gap-4 bg-white rounded-xl border">
+    <div className="flex p-4 sm:w-[500px] h-fit flex-col gap-4 bg-white rounded-xl border-2 border-gray-100">
       <p className="whitespace-pre-wrap">{t.text}</p>
       <div className="flex justify-between items-center text-sm w-full gap-2">
         {t.created_at && (
